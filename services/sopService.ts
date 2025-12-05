@@ -2,8 +2,17 @@ import { SOPCollection, SOPCategory, Step } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '');
 
+// Validate API URL is configured
+if (!API_BASE_URL && !import.meta.env.DEV) {
+  console.error('VITE_API_URL is not configured. Please set it in your environment variables.');
+}
+
 export const SOPService = {
   getAll: async (): Promise<SOPCollection> => {
+    if (!API_BASE_URL) {
+      throw new Error('API URL not configured. Please set VITE_API_URL environment variable.');
+    }
+    
     try {
       const response = await fetch(`${API_BASE_URL}/categories`);
       if (!response.ok) {
