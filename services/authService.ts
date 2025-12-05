@@ -1,5 +1,10 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '');
 
+// Validate API URL is configured
+if (!API_BASE_URL && !import.meta.env.DEV) {
+  console.error('VITE_API_URL is not configured. Please set it in your environment variables.');
+}
+
 export interface User {
   _id: string;
   name: string;
@@ -10,6 +15,11 @@ export interface User {
 
 export const authService = {
   login: async (email: string, password: string): Promise<boolean> => {
+    if (!API_BASE_URL) {
+      console.error('API URL not configured');
+      return false;
+    }
+    
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',

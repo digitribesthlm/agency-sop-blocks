@@ -33,6 +33,10 @@ export const SOPService = {
   },
 
   updateStep: async (categoryId: string, phaseId: string, stepId: string, updates: Partial<Step>): Promise<void> => {
+    if (!API_BASE_URL) {
+      throw new Error('API URL not configured. Please set VITE_API_URL environment variable.');
+    }
+    
     try {
       const response = await fetch(
         `${API_BASE_URL}/categories/${categoryId}/phases/${phaseId}/steps/${stepId}`,

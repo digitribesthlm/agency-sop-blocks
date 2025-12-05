@@ -3,10 +3,13 @@ import Dashboard from './components/Dashboard';
 import SOPView from './components/SOPView';
 import Login from './components/Login';
 import TimeReport from './components/TimeReport';
+import ApiError from './components/ApiError';
 import { SOPService } from './services/sopService';
 import { authService } from './services/authService';
 import { SOPCollection, SOPCategory } from './types';
 import { Loader2, LogOut, User, Clock } from 'lucide-react';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '');
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
@@ -61,6 +64,11 @@ const App: React.FC = () => {
     setActiveCategoryId(null);
     setView('dashboard');
   };
+
+  // Show API error if API URL is not configured (in production)
+  if (!API_BASE_URL && !import.meta.env.DEV) {
+    return <ApiError />;
+  }
 
   // Show login if not authenticated
   if (!isAuthenticated) {
