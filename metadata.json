@@ -1,0 +1,5 @@
+{
+  "name": "Agency SOP Blocks",
+  "description": "A modular block system for managing agency Standard Operating Procedures, featuring a phase-based drill-down interface.",
+  "requestFramePermissions": []
+}
