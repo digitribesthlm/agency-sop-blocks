@@ -9,7 +9,9 @@ import { authService } from './services/authService';
 import { SOPCollection, SOPCategory } from './types';
 import { Loader2, LogOut, User, Clock } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '');
+// In production, use same origin (Vercel handles routing)
+// In development, use localhost backend
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());

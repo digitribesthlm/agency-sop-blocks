@@ -1,6 +1,8 @@
 import { SOPCollection, SOPCategory, Step } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '');
+// In production, use same origin (Vercel handles routing)
+// In development, use localhost backend
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
 
 // Validate API URL is configured
 if (!API_BASE_URL && !import.meta.env.DEV) {
