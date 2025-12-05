@@ -18,6 +18,10 @@ export const SOPService = {
   },
 
   getById: async (id: string): Promise<SOPCategory | undefined> => {
+    if (!API_BASE_URL) {
+      throw new Error('API URL not configured. Please set VITE_API_URL environment variable.');
+    }
+    
     try {
       const response = await fetch(`${API_BASE_URL}/categories/${id}`);
       if (!response.ok) {
