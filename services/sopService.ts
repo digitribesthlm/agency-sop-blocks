@@ -54,7 +54,7 @@ export const SOPService = {
     
     try {
       const response = await fetch(
-        `${API_BASE_URL}/categories/${categoryId}/phases/${phaseId}/steps/${stepId}`,
+        `${API_BASE_URL}/steps/${stepId}`,
         {
           method: 'PUT',
           headers: {

@@ -191,8 +191,8 @@ router.get('/categories/:id', async (req, res) => {
   }
 });
 
-// Update a step
-router.put('/categories/:categoryId/phases/:phaseId/steps/:stepId', async (req, res) => {
+// Update a step (simple path - used by Vercel and frontend)
+router.put('/steps/:stepId', async (req, res) => {
   try {
     const db = await getDatabase();
     const { stepId } = req.params;
