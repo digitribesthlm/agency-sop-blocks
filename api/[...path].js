@@ -17,7 +17,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const db = await getDatabase();
-    const user = await db.collection('process_users').findOne({ email });
+    const user = await db.collection('users').findOne({ email });
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });

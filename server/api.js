@@ -14,13 +14,16 @@ router.post('/auth/login', async (req, res) => {
     }
 
     const db = await getDatabase();
-    const user = await db.collection('process_users').findOne({ email });
+    console.log('Login attempt for email:', email);
+    const user = await db.collection('users').findOne({ email });
+    console.log('User found:', user ? 'yes' : 'no');
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     // String comparison for password (as requested)
+    console.log('Password match:', user.password === password);
     if (user.password !== password) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
