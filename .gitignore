@@ -41,3 +41,4 @@ scripts/import-data.js
 # Server logs
 /tmp/server.log
 server.log
+scripts/

@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [data, setData] = useState<SOPCollection>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Initial Data Load (only if authenticated)
   useEffect(() => {
@@ -29,10 +30,16 @@ const App: React.FC = () => {
 
     const fetchData = async () => {
       try {
+        setError(null);
         const result = await SOPService.getAll();
+        console.log('Fetched categories:', result);
+        if (!Array.isArray(result)) {
+          throw new Error('Invalid data format received from API');
+        }
         setData(result);
       } catch (error) {
         console.error("Failed to load SOP data", error);
+        setError(error instanceof Error ? error.message : 'Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -128,10 +135,48 @@ const App: React.FC = () => {
       </header>
 
       {view === 'dashboard' && (
-        <Dashboard 
-          categories={data} 
-          onSelectCategory={handleSelectCategory} 
-        />
+        <>
+          {error && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800 font-medium">Error loading data:</p>
+                <p className="text-red-600 text-sm mt-1">{error}</p>
+                <button
+                  onClick={() => {
+                    setError(null);
+                    setLoading(true);
+                    SOPService.getAll()
+                      .then(result => {
+                        setData(result);
+                        setLoading(false);
+                      })
+                      .catch(err => {
+                        setError(err.message);
+                        setLoading(false);
+                      });
+                  }}
+                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+          {!error && data.length === 0 && !loading && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="text-center">
+                <p className="text-slate-600 text-lg">No categories found.</p>
+                <p className="text-slate-500 text-sm mt-2">Please check your database connection and ensure data is imported.</p>
+              </div>
+            </div>
+          )}
+          {!error && (data.length > 0 || loading) && (
+            <Dashboard 
+              categories={data} 
+              onSelectCategory={handleSelectCategory} 
+            />
+          )}
+        </>
       )}
 
       {view === 'sop' && activeCategoryId && (

@@ -1,15 +1,16 @@
 import React from 'react';
 import { Phase, Step } from '../types';
 import StepCard from './StepCard';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 
 interface PhaseColumnProps {
   phase: Phase;
   onStepClick: (step: Step, phaseId: string) => void;
+  onAddStep?: (phaseId: string) => void;
   isLast: boolean;
 }
 
-const PhaseColumn: React.FC<PhaseColumnProps> = ({ phase, onStepClick, isLast }) => {
+const PhaseColumn: React.FC<PhaseColumnProps> = ({ phase, onStepClick, onAddStep, isLast }) => {
   return (
     <div className="flex-shrink-0 w-72 flex flex-col h-full relative">
       {/* Header */}
@@ -44,6 +45,15 @@ const PhaseColumn: React.FC<PhaseColumnProps> = ({ phase, onStepClick, isLast })
             <div className="h-24 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg text-gray-400 text-sm">
                 No steps defined
             </div>
+        )}
+        {onAddStep && (
+          <button
+            onClick={() => onAddStep(phase.id)}
+            className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Add Step
+          </button>
         )}
       </div>
     </div>

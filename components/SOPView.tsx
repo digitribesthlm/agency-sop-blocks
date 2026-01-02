@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Settings, Share2, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, Settings, Share2, MoreHorizontal, Plus } from 'lucide-react';
 import { SOPCategory, Step } from '../types';
 import PhaseColumn from './PhaseColumn';
 import StepEditor from './StepEditor';
+import AddStepModal from './AddStepModal';
+import AddPhaseModal from './AddPhaseModal';
 import { SOPService } from '../services/sopService';
 
 interface SOPViewProps {
@@ -13,9 +15,15 @@ interface SOPViewProps {
 
 const SOPView: React.FC<SOPViewProps> = ({ category, onBack, onUpdate }) => {
   const [selectedStep, setSelectedStep] = useState<{ step: Step; phaseId: string } | null>(null);
+  const [addStepPhaseId, setAddStepPhaseId] = useState<string | null>(null);
+  const [showAddPhase, setShowAddPhase] = useState(false);
 
   const handleStepClick = (step: Step, phaseId: string) => {
     setSelectedStep({ step, phaseId });
+  };
+
+  const handleAddStep = (phaseId: string) => {
+    setAddStepPhaseId(phaseId);
   };
 
   const handleSaveStep = async (stepId: string, content: string, status: Step['status'], notes?: string) => {
@@ -23,6 +31,20 @@ const SOPView: React.FC<SOPViewProps> = ({ category, onBack, onUpdate }) => {
         await SOPService.updateStep(category.id, selectedStep.phaseId, stepId, { content, status, notes });
         onUpdate(); // Trigger re-fetch in parent
     }
+  };
+
+  const handleCreateStep = async (code: string, title: string, content: string, status: Step['status']) => {
+    if (addStepPhaseId) {
+      await SOPService.createStep(addStepPhaseId, code, title, content, status);
+      onUpdate(); // Trigger re-fetch in parent
+      setAddStepPhaseId(null);
+    }
+  };
+
+  const handleCreatePhase = async (title: string, description: string, phaseNumber: number) => {
+    await SOPService.createPhase(category.id, title, description, phaseNumber);
+    onUpdate(); // Trigger re-fetch in parent
+    setShowAddPhase(false);
   };
 
   return (
@@ -60,6 +82,13 @@ const SOPView: React.FC<SOPViewProps> = ({ category, onBack, onUpdate }) => {
             <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
                 <Share2 className="w-5 h-5" />
             </button>
+            <button
+              onClick={() => setShowAddPhase(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Phase
+            </button>
             <button className="hidden sm:inline-flex items-center px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors shadow-sm">
                 Actions
             </button>
@@ -76,6 +105,7 @@ const SOPView: React.FC<SOPViewProps> = ({ category, onBack, onUpdate }) => {
                         key={phase.id} 
                         phase={phase} 
                         onStepClick={handleStepClick}
+                        onAddStep={handleAddStep}
                         isLast={index === category.phases.length - 1}
                     />
                 ))
@@ -85,7 +115,14 @@ const SOPView: React.FC<SOPViewProps> = ({ category, onBack, onUpdate }) => {
                         <Settings className="w-8 h-8 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900">No Phases Defined</h3>
-                    <p className="text-gray-500 max-w-md mt-2">This category doesn't have any phases setup yet. Start by defining your high-level process blocks.</p>
+                    <p className="text-gray-500 max-w-md mt-2 mb-4">This category doesn't have any phases setup yet. Start by defining your high-level process blocks.</p>
+                    <button
+                      onClick={() => setShowAddPhase(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Create First Phase
+                    </button>
                 </div>
             )}
         </div>
@@ -102,6 +139,30 @@ const SOPView: React.FC<SOPViewProps> = ({ category, onBack, onUpdate }) => {
             categoryTitle={category.title}
             phaseId={selectedStep.phaseId}
             phaseTitle={category.phases.find(p => p.id === selectedStep.phaseId)?.title || ''}
+        />
+      )}
+
+      {/* Add Step Modal */}
+      {addStepPhaseId && (
+        <AddStepModal
+          isOpen={!!addStepPhaseId}
+          onClose={() => setAddStepPhaseId(null)}
+          onSave={handleCreateStep}
+          phaseId={addStepPhaseId}
+          phaseTitle={category.phases.find(p => p.id === addStepPhaseId)?.title || ''}
+          existingSteps={category.phases.find(p => p.id === addStepPhaseId)?.steps || []}
+        />
+      )}
+
+      {/* Add Phase Modal */}
+      {showAddPhase && (
+        <AddPhaseModal
+          isOpen={showAddPhase}
+          onClose={() => setShowAddPhase(false)}
+          onSave={handleCreatePhase}
+          categoryId={category.id}
+          categoryTitle={category.title}
+          existingPhases={category.phases}
         />
       )}
     </div>

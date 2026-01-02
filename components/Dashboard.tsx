@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Search, MousePointerClick, Facebook, Linkedin, Zap, MapPin, 
-  ArrowRight, FileText, Activity 
+  ArrowRight, FileText, Activity, Briefcase
 } from 'lucide-react';
 import { SOPCollection } from '../types';
 
@@ -20,6 +20,7 @@ const Dashboard: React.FC<DashboardProps> = ({ categories, onSelectCategory }) =
       case 'Linkedin': return <Linkedin className="w-8 h-8" />;
       case 'Zap': return <Zap className="w-8 h-8" />;
       case 'MapPin': return <MapPin className="w-8 h-8" />;
+      case 'Briefcase': return <Briefcase className="w-8 h-8" />;
       default: return <FileText className="w-8 h-8" />;
     }
   };
@@ -32,6 +33,7 @@ const Dashboard: React.FC<DashboardProps> = ({ categories, onSelectCategory }) =
       'linkedin-ads': 'bg-indigo-50 text-indigo-600 hover:border-indigo-200',
       'conversion': 'bg-amber-50 text-amber-600 hover:border-amber-200',
       'local-seo': 'bg-emerald-50 text-emerald-600 hover:border-emerald-200',
+      'bo': 'bg-purple-50 text-purple-600 hover:border-purple-200',
     };
     return colors[id] || 'bg-gray-50 text-gray-600';
   };

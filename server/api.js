@@ -191,6 +191,57 @@ router.get('/categories/:id', async (req, res) => {
   }
 });
 
+// Create a new step
+router.post('/steps', async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const { phaseId, code, title, content, status, notes } = req.body;
+    
+    if (!phaseId || !code || !title) {
+      return res.status(400).json({ error: 'phaseId, code, and title are required' });
+    }
+    
+    // Check if step with same code already exists in this phase
+    const existing = await db.collection('process_steps').findOne({ 
+      phaseId,
+      code 
+    });
+    
+    if (existing) {
+      return res.status(409).json({ error: 'Step with this code already exists in this phase' });
+    }
+    
+    const newStep = {
+      _id: code, // Use code as ID for consistency
+      phaseId,
+      code,
+      title,
+      content: content || '',
+      status: status || 'pending',
+      notes: notes || '',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const result = await db.collection('process_steps').insertOne(newStep);
+    
+    res.status(201).json({ 
+      success: true, 
+      step: {
+        id: newStep._id,
+        code: newStep.code,
+        title: newStep.title,
+        content: newStep.content,
+        status: newStep.status,
+        notes: newStep.notes
+      }
+    });
+  } catch (error) {
+    console.error('Error creating step:', error);
+    res.status(500).json({ error: 'Failed to create step' });
+  }
+});
+
 // Update a step (simple path - used by Vercel and frontend)
 router.put('/steps/:stepId', async (req, res) => {
   try {
@@ -216,6 +267,57 @@ router.put('/steps/:stepId', async (req, res) => {
   } catch (error) {
     console.error('Error updating step:', error);
     res.status(500).json({ error: 'Failed to update step' });
+  }
+});
+
+// Create a new phase
+router.post('/phases', async (req, res) => {
+  try {
+    const db = await getDatabase();
+    const { categoryId, title, description, phaseNumber } = req.body;
+    
+    if (!categoryId || !title || phaseNumber === undefined) {
+      return res.status(400).json({ error: 'categoryId, title, and phaseNumber are required' });
+    }
+    
+    // Generate phase ID
+    const phaseId = `${categoryId}-p${phaseNumber}`;
+    
+    // Check if phase with same number already exists in this category
+    const existing = await db.collection('process_phases').findOne({ 
+      categoryId,
+      phaseNumber 
+    });
+    
+    if (existing) {
+      return res.status(409).json({ error: 'Phase with this number already exists in this category' });
+    }
+    
+    const newPhase = {
+      _id: phaseId,
+      categoryId,
+      title,
+      description: description || '',
+      phaseNumber,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const result = await db.collection('process_phases').insertOne(newPhase);
+    
+    res.status(201).json({ 
+      success: true, 
+      phase: {
+        id: newPhase._id,
+        categoryId: newPhase.categoryId,
+        title: newPhase.title,
+        description: newPhase.description,
+        phaseNumber: newPhase.phaseNumber
+      }
+    });
+  } catch (error) {
+    console.error('Error creating phase:', error);
+    res.status(500).json({ error: 'Failed to create phase' });
   }
 });
 
