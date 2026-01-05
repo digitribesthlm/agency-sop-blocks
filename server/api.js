@@ -4,7 +4,6 @@ import { getDatabase } from '../services/mongodb.js';
 
 const router = express.Router();
 
-// Login endpoint
 router.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -14,21 +13,12 @@ router.post('/auth/login', async (req, res) => {
     }
 
     const db = await getDatabase();
-    console.log('Login attempt for email:', email);
     const user = await db.collection('users').findOne({ email });
-    console.log('User found:', user ? 'yes' : 'no');
     
-    if (!user) {
+    if (!user || user.password !== password) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // String comparison for password (as requested)
-    console.log('Password match:', user.password === password);
-    if (user.password !== password) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Return user data (without password)
     const { password: _, ...userWithoutPassword } = user;
     res.json({
       success: true,
@@ -46,7 +36,6 @@ router.post('/auth/login', async (req, res) => {
   }
 });
 
-// Transform MongoDB document to app format
 function transformCategory(doc) {
   return {
     id: doc._id,
@@ -80,7 +69,6 @@ function transformStep(doc) {
   };
 }
 
-// Get all categories with phases and steps
 router.get('/categories', async (req, res) => {
   try {
     const db = await getDatabase();
@@ -101,7 +89,7 @@ router.get('/categories', async (req, res) => {
     const phases = await db.collection('process_phases').find({}).toArray();
     const steps = await db.collection('process_steps').find({}).toArray();
     
-    console.log(`Found ${categories.length} categories, ${phases.length} phases, ${steps.length} steps`);
+    // Data fetched successfully
     
     const result = categories.map(catDoc => {
       const category = transformCategory(catDoc);
@@ -144,7 +132,6 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-// Get a single category by ID
 router.get('/categories/:id', async (req, res) => {
   try {
     const db = await getDatabase();
@@ -191,7 +178,6 @@ router.get('/categories/:id', async (req, res) => {
   }
 });
 
-// Create a new step
 router.post('/steps', async (req, res) => {
   try {
     const db = await getDatabase();
@@ -201,7 +187,6 @@ router.post('/steps', async (req, res) => {
       return res.status(400).json({ error: 'phaseId, code, and title are required' });
     }
     
-    // Check if step with same code already exists in this phase
     const existing = await db.collection('process_steps').findOne({ 
       phaseId,
       code 
@@ -242,7 +227,6 @@ router.post('/steps', async (req, res) => {
   }
 });
 
-// Update a step (simple path - used by Vercel and frontend)
 router.put('/steps/:stepId', async (req, res) => {
   try {
     const db = await getDatabase();
@@ -270,7 +254,6 @@ router.put('/steps/:stepId', async (req, res) => {
   }
 });
 
-// Create a new phase
 router.post('/phases', async (req, res) => {
   try {
     const db = await getDatabase();
@@ -280,10 +263,8 @@ router.post('/phases', async (req, res) => {
       return res.status(400).json({ error: 'categoryId, title, and phaseNumber are required' });
     }
     
-    // Generate phase ID
     const phaseId = `${categoryId}-p${phaseNumber}`;
     
-    // Check if phase with same number already exists in this category
     const existing = await db.collection('process_phases').findOne({ 
       categoryId,
       phaseNumber 
@@ -321,7 +302,6 @@ router.post('/phases', async (req, res) => {
   }
 });
 
-// Time tracking endpoints
 router.post('/time-tracking/log', async (req, res) => {
   try {
     const db = await getDatabase();
@@ -353,7 +333,6 @@ router.get('/time-tracking/summary', async (req, res) => {
     
     const logs = await db.collection('process_time_logs').find(query).toArray();
     
-    // Calculate summary
     let totalSeconds = 0;
     const byCategory = {};
     const byPhase = {};
@@ -361,36 +340,30 @@ router.get('/time-tracking/summary', async (req, res) => {
     const byClient = {};
     const byDate = {};
     
-    // Get client names
     const clients = await db.collection('process_clients').find({}).toArray();
     const clientMap = {};
     clients.forEach(c => { clientMap[c._id] = c.name; });
     
     logs.forEach(log => {
       totalSeconds += log.seconds;
-      
-      // By category
       if (!byCategory[log.categoryId]) {
         byCategory[log.categoryId] = { seconds: 0, hours: 0, categoryTitle: log.categoryTitle };
       }
       byCategory[log.categoryId].seconds += log.seconds;
       byCategory[log.categoryId].hours = byCategory[log.categoryId].seconds / 3600;
       
-      // By phase
       if (!byPhase[log.phaseId]) {
         byPhase[log.phaseId] = { seconds: 0, hours: 0, phaseTitle: log.phaseTitle };
       }
       byPhase[log.phaseId].seconds += log.seconds;
       byPhase[log.phaseId].hours = byPhase[log.phaseId].seconds / 3600;
       
-      // By step
       if (!byStep[log.stepId]) {
         byStep[log.stepId] = { seconds: 0, hours: 0, stepTitle: log.stepTitle };
       }
       byStep[log.stepId].seconds += log.seconds;
       byStep[log.stepId].hours = byStep[log.stepId].seconds / 3600;
       
-      // By client
       const clientId = log.clientId || 'no-client';
       if (!byClient[clientId]) {
         byClient[clientId] = { seconds: 0, hours: 0, clientName: clientMap[clientId] || 'No Client' };
@@ -398,7 +371,6 @@ router.get('/time-tracking/summary', async (req, res) => {
       byClient[clientId].seconds += log.seconds;
       byClient[clientId].hours = byClient[clientId].seconds / 3600;
       
-      // By date
       if (!byDate[log.date]) {
         byDate[log.date] = { seconds: 0, hours: 0 };
       }
@@ -446,7 +418,62 @@ router.get('/time-tracking/logs', async (req, res) => {
   }
 });
 
-// Clients endpoint
+router.get('/airtable', async (req, res) => {
+  try {
+    const token = process.env.AIRTABLE_SECRET_TOKEN;
+    const baseId = process.env.AIRTABLE_BASE_ID;
+    const tableId = process.env.AIRTABLE_TABLE_ID;
+    
+    if (!token || !baseId || !tableId) {
+      return res.status(500).json({ 
+        error: 'Airtable not configured',
+        message: 'AIRTABLE_SECRET_TOKEN, AIRTABLE_BASE_ID, and AIRTABLE_TABLE_ID must be set in environment variables'
+      });
+    }
+    
+    const airtableUrl = `https://api.airtable.com/v0/${baseId}/${tableId}`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+    
+    const allRecords = [];
+    let offset = null;
+    
+    while (true) {
+      const params = offset ? { offset } : {};
+      const queryString = new URLSearchParams(params).toString();
+      const url = queryString ? `${airtableUrl}?${queryString}` : airtableUrl;
+      
+      const response = await fetch(url, {
+        headers,
+      });
+
+      if (!response.ok) {
+        console.error('Airtable API error:', response.status);
+        throw new Error(`Airtable API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      allRecords.push(...(data.records || []));
+      
+      if (data.offset) {
+        offset = data.offset;
+      } else {
+        break;
+      }
+    }
+    
+    res.json({ records: allRecords });
+  } catch (error) {
+    console.error('Error fetching Airtable data');
+    res.status(500).json({ 
+      error: 'Failed to fetch Airtable data',
+      message: 'Unable to retrieve data from Airtable'
+    });
+  }
+});
+
 router.get('/clients', async (req, res) => {
   try {
     const db = await getDatabase();
@@ -455,7 +482,6 @@ router.get('/clients', async (req, res) => {
       .sort({ name: 1 })
       .toArray();
     
-    // Transform to match frontend format
     const result = clients.map(client => ({
       id: client._id,
       name: client.name,

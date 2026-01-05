@@ -41,10 +41,8 @@ export default async function handler(req, res) {
     
     const database = await getDatabase();
     
-    // Generate phase ID
     const phaseId = `${categoryId}-p${phaseNumber}`;
     
-    // Check if phase with same number already exists in this category
     const existing = await database.collection('process_phases').findOne({ 
       categoryId,
       phaseNumber 

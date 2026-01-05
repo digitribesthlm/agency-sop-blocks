@@ -68,13 +68,9 @@ export default async function handler(req, res) {
   try {
     const database = await getDatabase();
     
-    console.log('Fetching categories from database:', database.databaseName);
-    
     const categories = await database.collection('process_categories').find({}).toArray();
     const phases = await database.collection('process_phases').find({}).toArray();
     const steps = await database.collection('process_steps').find({}).toArray();
-    
-    console.log(`Found ${categories.length} categories, ${phases.length} phases, ${steps.length} steps`);
     
     if (categories.length === 0) {
       console.warn('No categories found in process_categories collection');

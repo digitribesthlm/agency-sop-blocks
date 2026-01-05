@@ -3,7 +3,6 @@ import { MongoClient } from 'mongodb';
 let client = null;
 let db = null;
 
-// Get environment variables dynamically (after dotenv loads them)
 function getMongoUri() {
   return process.env.MONGODB_URL_TASK_MANAGER;
 }
@@ -29,16 +28,11 @@ export async function connectToMongoDB() {
   }
 
   try {
-    console.log('Connecting to MongoDB URI:', MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials
-    console.log('Target database name:', DB_NAME);
-    
     // Create client without database in URI to avoid conflicts
     const uriWithoutDb = MONGODB_URI.split('?')[0].replace(/\/[^\/]+$/, '') + (MONGODB_URI.includes('?') ? '?' + MONGODB_URI.split('?')[1] : '');
     client = new MongoClient(MONGODB_URI);
     await client.connect();
     db = client.db(DB_NAME);
-    console.log('Connected to MongoDB successfully');
-    console.log('Actual database name:', db.databaseName);
     
     // Force a fresh query
     const testCount = await db.collection('process_categories').countDocuments({});
@@ -49,7 +43,7 @@ export async function connectToMongoDB() {
       const allCollections = await db.listCollections().toArray();
       for (const coll of allCollections.filter(c => c.name.startsWith('process_'))) {
         const collCount = await db.collection(coll.name).countDocuments({});
-        console.log(`Collection ${coll.name}: ${collCount} documents`);
+        // Collection available
       }
     }
     

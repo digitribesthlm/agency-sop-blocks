@@ -1,10 +1,6 @@
 import { SOPCollection, SOPCategory, Step, Phase } from '../types';
 
-// In production, use same origin (Vercel handles routing)
-// In development, use localhost backend
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
-
-// Validate API URL is configured
 if (!API_BASE_URL && !import.meta.env.DEV) {
   console.error('VITE_API_URL is not configured. Please set it in your environment variables.');
 }
@@ -16,7 +12,6 @@ export const SOPService = {
     }
     
     try {
-      console.log('Fetching categories from:', `${API_BASE_URL}/categories`);
       const response = await fetch(`${API_BASE_URL}/categories`);
       
       if (!response.ok) {
@@ -32,7 +27,6 @@ export const SOPService = {
       }
       
       const data = await response.json();
-      console.log('Received data:', data);
       
       if (!Array.isArray(data)) {
         throw new Error('API returned invalid data format. Expected an array.');

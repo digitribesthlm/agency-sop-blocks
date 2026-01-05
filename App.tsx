@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Dashboard from './components/Dashboard';
 import SOPView from './components/SOPView';
+import ReffView from './components/ReffView';
 import Login from './components/Login';
 import TimeReport from './components/TimeReport';
 import ApiError from './components/ApiError';
@@ -32,7 +33,6 @@ const App: React.FC = () => {
       try {
         setError(null);
         const result = await SOPService.getAll();
-        console.log('Fetched categories:', result);
         if (!Array.isArray(result)) {
           throw new Error('Invalid data format received from API');
         }
@@ -179,7 +179,13 @@ const App: React.FC = () => {
         </>
       )}
 
-      {view === 'sop' && activeCategoryId && (
+      {view === 'sop' && activeCategoryId && activeCategoryId === 'reff' && (
+        <ReffView 
+          onBack={handleBack}
+        />
+      )}
+
+      {view === 'sop' && activeCategoryId && activeCategoryId !== 'reff' && (
         <SOPView 
           category={data.find(c => c.id === activeCategoryId)!} 
           onBack={handleBack}

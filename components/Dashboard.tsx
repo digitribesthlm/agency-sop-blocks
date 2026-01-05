@@ -36,6 +36,7 @@ const Dashboard: React.FC<DashboardProps> = ({ categories, onSelectCategory }) =
       'local-seo': 'bg-emerald-50 text-emerald-600 hover:border-emerald-200',
       'bo': 'bg-purple-50 text-purple-600 hover:border-purple-200',
       'tracking': 'bg-pink-50 text-pink-600 hover:border-pink-200',
+      'reff': 'bg-teal-50 text-teal-600 hover:border-teal-200',
     };
     return colors[id] || 'bg-gray-50 text-gray-600';
   };

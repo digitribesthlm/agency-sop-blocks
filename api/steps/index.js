@@ -41,7 +41,6 @@ export default async function handler(req, res) {
     
     const database = await getDatabase();
     
-    // Check if step with same code already exists in this phase
     const existing = await database.collection('process_steps').findOne({ 
       phaseId,
       code 
